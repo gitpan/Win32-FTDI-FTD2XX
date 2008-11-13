@@ -1,0 +1,10 @@
+Revision history for Win32::FTDI::FTD2XX
+$Id: Changes,v 1.2 2008/11/13 20:47:17 395502 Exp $
+
+(see BUGS file for bug references)
+
+1.01b  - Initial Beta Release
+1.02b  - Cosmetic and documentation corrections.
+1.03b  - Fixed CyclePort() FT_HANDLE BUG# FTD2XX-1.02-01
+         Updated API Method doc to reflect the behavior.
+
