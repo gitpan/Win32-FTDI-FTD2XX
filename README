@@ -1,6 +1,6 @@
 Win32-FTDI-FTD2XX version 1.02
 ==============================
-$Id: README,v 1.4 2008/11/13 20:45:56 395502 Exp $
+$Id: README,v 1.5 2008/11/17 15:00:38 395502 Exp $
 ==============================
 
 Win32::FTDI::FTD2XX provides a Perl5 interface to FTDI's D2XX Direct USB 
@@ -19,7 +19,7 @@ Win32::API, it fails to be recognized as a valid handle by the FT library,
 since the underlying pointer type's value/meaning gets mangled.
 
 The P5FTD2XX Windows DLL abstracts the more complicated API calls and
-datatypes (like wrapping 'C<FT_HANDLE>' with 'C<PFT_HANDLE>') and provides 
+datatypes (like wrapping 'FT_HANDLE' with 'PFT_HANDLE') and provides 
 other extensions to allow Perl to more conveniently interact with the
 FTDI devices using the native CDM drivers instead of the Virtual Comm Port
 (VCP), which can be problematic on Windows when trying to use older
@@ -34,11 +34,11 @@ Any export prefixed with 'PFT' is an extension provided by the
 Win32::FTDI::FTD2Xxx.pm/P5FTD2XX DLL package.
 
 Many of the native FT API's have been completely preserved, such as
-'C<(P)FT_SetDataCharacteristics>', others, like the multi-function 'FT_Open',
+'(P)FT_SetDataCharacteristics', others, like the multi-function 'FT_Open',
 have been divided into simpler dedicated interfaces as 'PFT_OpenBySerial'
 and 'PFT_OpenByIndex' (Note: The object interface methods do not require the
 'PFT_' prefix, except where noted). Other convenience methods have been added,
-like 'C<waitForModem( bitmask )>' and the 'crack...' methods which extract
+like 'waitForModem( bitmask )' and the 'crack...' methods which extract
 bit fields from FT status bytes for you if you don't care to use the values
 directly.
 

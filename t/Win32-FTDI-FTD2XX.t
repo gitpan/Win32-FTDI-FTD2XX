@@ -1,16 +1,14 @@
 #!perl
 ################################################################################
-# $Id: $
+# $Id: Win32-FTDI-FTD2XX.t,v 1.3 2008/11/17 15:31:02 395502 Exp $
 ################################################################################
 
 use Test::More tests => 12;
 
 #########################
 use strict;
-use Win32::FTDI::FTD2XX qw(:DEFAULT
-      $FT_BAUD_38400 $FT_BITS_8 $FT_STOP_BITS_1 $FT_PARITY_NONE
-      $FT_FLOW_RTS_CTS $PFT_MODEM_STATUS_CTS
-      );
+use Win32::FTDI::FTD2XX qw( /./ );
+
 #TEST1
 use_ok('Win32::FTDI::FTD2XX');
 
@@ -22,7 +20,7 @@ ok( defined( $FTD ), "new()" );
 is( $FTD->PFT_HANDLE(), 1, "PFT_HANDLE()" );
 
 #TEST4
-is( $FTD->PFT_STATUS(), $FT_OK, "PFT_STATUS()" );
+is( $FTD->PFT_STATUS(), FT_OK, "PFT_STATUS()" );
 
 #TEST5
 is( $FTD->PFT_STATUS_MSG(), "OK", "PFT_STATUS_MSG()" );
@@ -31,12 +29,12 @@ diag( "\n" );
 
 #TEST6
 my $modVersion = $FTD->VERSION();
-is( $modVersion, "1.03", "VERSION()" );
+is( $modVersion, "1.04", "VERSION()" );
 diag( "FTD2XX::VERSION returns [$modVersion] ... good" );
 
 #TEST7
 my $dllVersion = $FTD->P5VERSION();
-is( $dllVersion, "1.03", "P5VERSION()" );
+is( $dllVersion, "1.04", "P5VERSION()" );
 diag( "FTD2XX::P5VERSION returns [$dllVersion] ... good" );
 
 #TEST8

@@ -6,7 +6,7 @@
 # Author     : Scott K. MacPherson, (c) Copyright 2008, All Rights Reserved
 #              <skmacphe@cpan.org>
 #
-# $Id: FTD2XX.pm,v 1.3 2008/11/13 20:44:23 395502 Exp $
+# $Id: FTD2XX.pm,v 1.4 2008/11/17 15:03:33 395502 Exp $
 #
 ################################################################################
 
@@ -14,185 +14,105 @@ package Win32::FTDI::FTD2XX;
 
 use 5.008008;
 use strict;
-use Carp;
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
 
 use Win32::API;       # DLL calling interface
 
-use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK
-  $FT_OK
-  $FT_INVALID_HANDLE
-  $FT_DEVICE_NOT_FOUND
-  $FT_DEVICE_NOT_OPENED
-  $FT_IO_ERROR
-  $FT_INSUFFICIENT_RESOURCES
-  $FT_INVALID_PARAMETER
-  $FT_INVALID_BAUD_RATE
-  $FT_DEVICE_NOT_OPENED_FOR_ERASE
-  $FT_DEVICE_NOT_OPENED_FOR_WRITE
-  $FT_FAILED_TO_WRITE_DEVICE
-  $FT_EEPROM_READ_FAILED
-  $FT_EEPROM_WRITE_FAILED
-  $FT_EEPROM_ERASE_FAILED
-  $FT_EEPROM_NOT_PRESENT
-  $FT_EEPROM_NOT_PROGRAMMED
-  $FT_INVALID_ARGS
-  $FT_NOT_SUPPORTED
-  $FT_OTHER_ERROR
-  $FT_DEVICE_LIST_NOT_READY
+our $VERSION = do { my @r = (q$Revision: 1.4 $ =~ /\d+/g); sprintf( "%d."."%02d" x $#r, @r ) };
 
-  $FT_BAUD_300
-  $FT_BAUD_600
-  $FT_BAUD_1200
-  $FT_BAUD_2400
-  $FT_BAUD_4800
-  $FT_BAUD_9600
-  $FT_BAUD_14400
-  $FT_BAUD_19200
-  $FT_BAUD_38400
-  $FT_BAUD_57600
-  $FT_BAUD_115200
-  $FT_BAUD_230400
-  $FT_BAUD_460800
-  $FT_BAUD_921600
-
-  $FT_BITS_8
-  $FT_BITS_7
-  $FT_BITS_6
-  $FT_BITS_5
-
-  $FT_STOP_BITS_1
-  $FT_STOP_BITS_1_5
-  $FT_STOP_BITS_2
-
-  $FT_PARITY_NONE
-  $FT_PARITY_ODD
-  $FT_PARITY_EVEN
-  $FT_PARITY_MARK
-  $FT_PARITY_SPACE
-
-  $FT_FLOW_NONE
-  $FT_FLOW_RTS_CTS
-  $FT_FLOW_DTR_DSR
-  $FT_FLOW_XON_XOFF
-
-  $FT_PURGE_RX
-  $FT_PURGE_TX
-  $FT_DEFAULT_RX_TIMEOUT
-  $FT_DEFAULT_TX_TIMEOUT
-
-  $FT_DEVICE_BM
-  $FT_DEVICE_AM
-  $FT_DEVICE_100AX
-  $FT_DEVICE_UNKNOWN
-  $FT_DEVICE_2232C
-  $FT_DEVICE_232R
-
-  $PFTE_INVALID_API
-  $PFTE_MAX_HANDLES
-  $PFTE_INVALID_HANDLE
-  $PFTE_WAIT_TIMEOUT
-
-  $PFT_FLOW_XonChar
-  $PFT_FLOW_XoffChar
-
-  $PFT_MODEM_STATUS_CTS
-  $PFT_MODEM_STATUS_DSR
-  $PFT_MODEM_STATUS_RI
-  $PFT_MODEM_STATUS_DCD
-
-  $PFT_MAX_SERIAL
-  $PFT_MAX_DESCR
-  $PFT_MAX_HANDLES
-  $PFT_WAIT_POLLTM
-);  # vars
+use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK );
 
 our @ISA = qw( Exporter );
 
 # default export list
 our @EXPORT = qw( 
-  $FT_OK
+  FT_OK
 );
 
 # available for export to caller
 our @EXPORT_OK = qw( 
-  $FT_OK
-  $FT_INVALID_HANDLE
-  $FT_DEVICE_NOT_FOUND
-  $FT_DEVICE_NOT_OPENED
-  $FT_IO_ERROR
-  $FT_INSUFFICIENT_RESOURCES
-  $FT_INVALID_PARAMETER
-  $FT_INVALID_BAUD_RATE
-  $FT_DEVICE_NOT_OPENED_FOR_ERASE
-  $FT_DEVICE_NOT_OPENED_FOR_WRITE
-  $FT_FAILED_TO_WRITE_DEVICE
-  $FT_EEPROM_READ_FAILED
-  $FT_EEPROM_WRITE_FAILED
-  $FT_EEPROM_ERASE_FAILED
-  $FT_EEPROM_NOT_PRESENT
-  $FT_EEPROM_NOT_PROGRAMMED
-  $FT_INVALID_ARGS
-  $FT_NOT_SUPPORTED
-  $FT_OTHER_ERROR
-  $FT_DEVICE_LIST_NOT_READY
-  $PFTE_INVALID_API
-  $PFTE_MAX_HANDLES
-  $PFTE_INVALID_HANDLE
-  $PFTE_WAIT_TIMEOUT
-  $FT_BAUD_300
-  $FT_BAUD_600
-  $FT_BAUD_1200
-  $FT_BAUD_2400
-  $FT_BAUD_4800
-  $FT_BAUD_9600
-  $FT_BAUD_14400
-  $FT_BAUD_19200
-  $FT_BAUD_38400
-  $FT_BAUD_57600
-  $FT_BAUD_115200
-  $FT_BAUD_230400
-  $FT_BAUD_460800
-  $FT_BAUD_921600
-  $FT_BITS_8
-  $FT_BITS_7
-  $FT_BITS_6
-  $FT_BITS_5
-  $FT_STOP_BITS_1
-  $FT_STOP_BITS_1_5
-  $FT_STOP_BITS_2
-  $FT_PARITY_NONE
-  $FT_PARITY_ODD
-  $FT_PARITY_EVEN
-  $FT_PARITY_MARK
-  $FT_PARITY_SPACE
-  $FT_FLOW_NONE
-  $FT_FLOW_RTS_CTS
-  $FT_FLOW_DTR_DSR
-  $FT_FLOW_XON_XOFF
-  $FT_PURGE_RX
-  $FT_PURGE_TX
-  $FT_DEFAULT_RX_TIMEOUT
-  $FT_DEFAULT_TX_TIMEOUT
-  $FT_DEVICE_BM
-  $FT_DEVICE_AM
-  $FT_DEVICE_100AX
-  $FT_DEVICE_UNKNOWN
-  $FT_DEVICE_2232C
-  $FT_DEVICE_232R
-  $PFT_FLOW_XonChar
-  $PFT_FLOW_XoffChar
-  $PFT_MODEM_STATUS_CTS
-  $PFT_MODEM_STATUS_DSR
-  $PFT_MODEM_STATUS_RI
-  $PFT_MODEM_STATUS_DCD
-  $PFT_MAX_SERIAL
-  $PFT_MAX_DESCR
-  $PFT_MAX_HANDLES
+  FT_OK
+  FT_INVALID_HANDLE
+  FT_DEVICE_NOT_FOUND
+  FT_DEVICE_NOT_OPENED
+  FT_IO_ERROR
+  FT_INSUFFICIENT_RESOURCES
+  FT_INVALID_PARAMETER
+  FT_INVALID_BAUD_RATE
+  FT_DEVICE_NOT_OPENED_FOR_ERASE
+  FT_DEVICE_NOT_OPENED_FOR_WRITE
+  FT_FAILED_TO_WRITE_DEVICE
+  FT_EEPROM_READ_FAILED
+  FT_EEPROM_WRITE_FAILED
+  FT_EEPROM_ERASE_FAILED
+  FT_EEPROM_NOT_PRESENT
+  FT_EEPROM_NOT_PROGRAMMED
+  FT_INVALID_ARGS
+  FT_NOT_SUPPORTED
+  FT_OTHER_ERROR
+  FT_DEVICE_LIST_NOT_READY
+  PFTE_INVALID_API
+  PFTE_MAX_HANDLES
+  PFTE_INVALID_HANDLE
+  PFTE_WAIT_TIMEOUT
+  FT_BAUD_300
+  FT_BAUD_600
+  FT_BAUD_1200
+  FT_BAUD_2400
+  FT_BAUD_4800
+  FT_BAUD_9600
+  FT_BAUD_14400
+  FT_BAUD_19200
+  FT_BAUD_38400
+  FT_BAUD_57600
+  FT_BAUD_115200
+  FT_BAUD_230400
+  FT_BAUD_460800
+  FT_BAUD_921600
+  FT_BITS_8
+  FT_BITS_7
+  FT_BITS_6
+  FT_BITS_5
+  FT_STOP_BITS_1
+  FT_STOP_BITS_1_5
+  FT_STOP_BITS_2
+  FT_PARITY_NONE
+  FT_PARITY_ODD
+  FT_PARITY_EVEN
+  FT_PARITY_MARK
+  FT_PARITY_SPACE
+  FT_FLOW_NONE
+  FT_FLOW_RTS_CTS
+  FT_FLOW_DTR_DSR
+  FT_FLOW_XON_XOFF
+  FT_PURGE_RX
+  FT_PURGE_TX
+  FT_DEFAULT_RX_TIMEOUT
+  FT_DEFAULT_TX_TIMEOUT
+  FT_DEVICE_BM
+  FT_DEVICE_AM
+  FT_DEVICE_100AX
+  FT_DEVICE_UNKNOWN
+  FT_DEVICE_2232C
+  FT_DEVICE_232R
+  PFT_FLOW_XonChar
+  PFT_FLOW_XoffChar
+  PFT_MODEM_STATUS_CTS
+  PFT_MODEM_STATUS_DSR
+  PFT_MODEM_STATUS_RI
+  PFT_MODEM_STATUS_DCD
+  PFT_BITMODE_RESET
+  PFT_BITMODE_ASYNCBB
+  PFT_BITMODE_MPSSE
+  PFT_BITMODE_SYNCBB
+  PFT_BITMODE_MHBEM
+  PFT_BITMODE_FOISM
+  PFT_BITMODE_CBUSBB
+  PFT_MAX_SERIAL
+  PFT_MAX_DESCR
+  PFT_MAX_HANDLES
 );
-
-our $VERSION = do { my @r = (q$Revision: 1.3 $ =~ /\d+/g); sprintf( "%d."."%02d" x $#r, @r ) };
 
 #######################################
 # Definitions from FTD2XX.H and P5FTD2XX.H
@@ -203,111 +123,120 @@ Win32::API::Type->typedef( 'PPFT_HANDLE', 'LPDWORD' );
 Win32::API::Type->typedef( 'PFT_STATUS', 'DWORD' );
 
 # Enumerated device status types
-$FT_OK = 0;
-$FT_INVALID_HANDLE = 1;
-$FT_DEVICE_NOT_FOUND = 2;
-$FT_DEVICE_NOT_OPENED = 3;
-$FT_IO_ERROR = 4;
-$FT_INSUFFICIENT_RESOURCES = 5;
-$FT_INVALID_PARAMETER = 6;
-$FT_INVALID_BAUD_RATE = 7;
-$FT_DEVICE_NOT_OPENED_FOR_ERASE = 8;
-$FT_DEVICE_NOT_OPENED_FOR_WRITE = 9;
-$FT_FAILED_TO_WRITE_DEVICE = 10;
-$FT_EEPROM_READ_FAILED = 11;
-$FT_EEPROM_WRITE_FAILED = 12;
-$FT_EEPROM_ERASE_FAILED = 13;
-$FT_EEPROM_NOT_PRESENT = 14;
-$FT_EEPROM_NOT_PROGRAMMED = 15;
-$FT_INVALID_ARGS = 16;
-$FT_NOT_SUPPORTED = 17;
-$FT_OTHER_ERROR = 18;
-$FT_DEVICE_LIST_NOT_READY = 19;
+use constant FT_OK => 0;
+use constant FT_INVALID_HANDLE => 1;
+use constant FT_DEVICE_NOT_FOUND => 2;
+use constant FT_DEVICE_NOT_OPENED => 3;
+use constant FT_IO_ERROR => 4;
+use constant FT_INSUFFICIENT_RESOURCES => 5;
+use constant FT_INVALID_PARAMETER => 6;
+use constant FT_INVALID_BAUD_RATE => 7;
+use constant FT_DEVICE_NOT_OPENED_FOR_ERASE => 8;
+use constant FT_DEVICE_NOT_OPENED_FOR_WRITE => 9;
+use constant FT_FAILED_TO_WRITE_DEVICE => 10;
+use constant FT_EEPROM_READ_FAILED => 11;
+use constant FT_EEPROM_WRITE_FAILED => 12;
+use constant FT_EEPROM_ERASE_FAILED => 13;
+use constant FT_EEPROM_NOT_PRESENT => 14;
+use constant FT_EEPROM_NOT_PROGRAMMED => 15;
+use constant FT_INVALID_ARGS => 16;
+use constant FT_NOT_SUPPORTED => 17;
+use constant FT_OTHER_ERROR => 18;
+use constant FT_DEVICE_LIST_NOT_READY => 19;
 #PFT specific error additions
-$PFTE_INVALID_API = 100;
-$PFTE_MAX_HANDLES = 101;
-$PFTE_INVALID_HANDLE = 102;
-$PFTE_WAIT_TIMEOUT = 103;
+use constant PFTE_INVALID_API => 100;
+use constant PFTE_MAX_HANDLES => 101;
+use constant PFTE_INVALID_HANDLE => 102;
+use constant PFTE_WAIT_TIMEOUT => 103;
 
-# STATUS Translation
-our %PFTMsg = (
-$FT_OK => "OK",
-$FT_INVALID_HANDLE => "FT_INVALID_HANDLE",
-$FT_DEVICE_NOT_FOUND => "DEVICE_NOT_FOUND",
-$FT_DEVICE_NOT_OPENED => "DEVICE_NOT_OPENED",
-$FT_IO_ERROR => "IO_ERROR",
-$FT_INSUFFICIENT_RESOURCES => "INSUFFICIENT_RESOURCES",
-$FT_INVALID_PARAMETER => "INVALID_PARAMETER",
-$FT_INVALID_BAUD_RATE => "INVALID_BAUD_RATE",
-$FT_DEVICE_NOT_OPENED_FOR_ERASE => "DEVICE_NOT_OPENED_FOR_ERASE",
-$FT_DEVICE_NOT_OPENED_FOR_WRITE => "DEVICE_NOT_OPENED_FOR_WRITE",
-$FT_FAILED_TO_WRITE_DEVICE => "FAILED_TO_WRITE_DEVICE",
-$FT_EEPROM_READ_FAILED => "EEPROM_READ_FAILED",
-$FT_EEPROM_WRITE_FAILED => "EEPROM_WRITE_FAILED",
-$FT_EEPROM_ERASE_FAILED => "EEPROM_ERASE_FAILED",
-$FT_EEPROM_NOT_PRESENT => "EEPROM_NOT_PRESENT",
-$FT_EEPROM_NOT_PROGRAMMED => "EEPROM_NOT_PROGRAMMED",
-$FT_INVALID_ARGS => "INVALID_ARGS",
-$FT_NOT_SUPPORTED => "NOT_SUPPORTED",
-$FT_OTHER_ERROR => "OTHER_ERROR",
-$FT_DEVICE_LIST_NOT_READY => "DEVICE_LIST_NOT_READY",
-$PFTE_INVALID_API => "INVALID_API",
-$PFTE_MAX_HANDLES => "MAX_HANDLES_REACHED",
-$PFTE_INVALID_HANDLE => "PFT_INVALID_HANDLE",
-$PFTE_WAIT_TIMEOUT => "WAIT_TIMEOUT",
-);
+# STATUS Translation - accessed only via PFT_STATUS_MSG()
+my %PFTMsg = (
+  @{[FT_OK]} => "OK",
+  @{[FT_INVALID_HANDLE]} => "FT_INVALID_HANDLE",
+  @{[FT_DEVICE_NOT_FOUND]} => "DEVICE_NOT_FOUND",
+  @{[FT_DEVICE_NOT_OPENED]} => "DEVICE_NOT_OPENED",
+  @{[FT_IO_ERROR]} => "IO_ERROR",
+  @{[FT_INSUFFICIENT_RESOURCES]} => "INSUFFICIENT_RESOURCES",
+  @{[FT_INVALID_PARAMETER]} => "INVALID_PARAMETER",
+  @{[FT_INVALID_BAUD_RATE]} => "INVALID_BAUD_RATE",
+  @{[FT_DEVICE_NOT_OPENED_FOR_ERASE]} => "DEVICE_NOT_OPENED_FOR_ERASE",
+  @{[FT_DEVICE_NOT_OPENED_FOR_WRITE]} => "DEVICE_NOT_OPENED_FOR_WRITE",
+  @{[FT_FAILED_TO_WRITE_DEVICE]} => "FAILED_TO_WRITE_DEVICE",
+  @{[FT_EEPROM_READ_FAILED]} => "EEPROM_READ_FAILED",
+  @{[FT_EEPROM_WRITE_FAILED]} => "EEPROM_WRITE_FAILED",
+  @{[FT_EEPROM_ERASE_FAILED]} => "EEPROM_ERASE_FAILED",
+  @{[FT_EEPROM_NOT_PRESENT]} => "EEPROM_NOT_PRESENT",
+  @{[FT_EEPROM_NOT_PROGRAMMED]} => "EEPROM_NOT_PROGRAMMED",
+  @{[FT_INVALID_ARGS]} => "INVALID_ARGS",
+  @{[FT_NOT_SUPPORTED]} => "NOT_SUPPORTED",
+  @{[FT_OTHER_ERROR]} => "OTHER_ERROR",
+  @{[FT_DEVICE_LIST_NOT_READY]} => "DEVICE_LIST_NOT_READY",
+  @{[PFTE_INVALID_API]} => "INVALID_API",
+  @{[PFTE_MAX_HANDLES]} => "MAX_HANDLES_REACHED",
+  @{[PFTE_INVALID_HANDLE]} => "PFT_INVALID_HANDLE",
+  @{[PFTE_WAIT_TIMEOUT]} => "WAIT_TIMEOUT",
+  );
 
 # Baud Rates
-$FT_BAUD_300 = 300;
-$FT_BAUD_600 = 600;
-$FT_BAUD_1200 = 1200;
-$FT_BAUD_2400 = 2400;
-$FT_BAUD_4800 = 4800;
-$FT_BAUD_9600 = 9600;
-$FT_BAUD_14400 = 14400;
-$FT_BAUD_19200 = 19200;
-$FT_BAUD_38400 = 38400;
-$FT_BAUD_57600 = 57600;
-$FT_BAUD_115200 = 115200;
-$FT_BAUD_230400 = 230400;
-$FT_BAUD_460800 = 460800;
-$FT_BAUD_921600 = 921600;
+use constant FT_BAUD_300 => 300;
+use constant FT_BAUD_600 => 600;
+use constant FT_BAUD_1200 => 1200;
+use constant FT_BAUD_2400 => 2400;
+use constant FT_BAUD_4800 => 4800;
+use constant FT_BAUD_9600 => 9600;
+use constant FT_BAUD_14400 => 14400;
+use constant FT_BAUD_19200 => 19200;
+use constant FT_BAUD_38400 => 38400;
+use constant FT_BAUD_57600 => 57600;
+use constant FT_BAUD_115200 => 115200;
+use constant FT_BAUD_230400 => 230400;
+use constant FT_BAUD_460800 => 460800;
+use constant FT_BAUD_921600 => 921600;
 
 # Word Lengths
-$FT_BITS_8 = 0x08;
-$FT_BITS_7 = 0x07;
-$FT_BITS_6 = 0x06;
-$FT_BITS_5 = 0x05;
+use constant FT_BITS_8 => 0x08;
+use constant FT_BITS_7 => 0x07;
+use constant FT_BITS_6 => 0x06;
+use constant FT_BITS_5 => 0x05;
 
 # Stop Bits
-$FT_STOP_BITS_1 = 0x00;
-$FT_STOP_BITS_1_5 = 0x01;
-$FT_STOP_BITS_2 = 0x02;
+use constant FT_STOP_BITS_1 => 0x00;
+use constant FT_STOP_BITS_1_5 => 0x01;
+use constant FT_STOP_BITS_2 => 0x02;
 
 # Parity
-$FT_PARITY_NONE = 0x00;
-$FT_PARITY_ODD = 0x01;
-$FT_PARITY_EVEN = 0x02;
-$FT_PARITY_MARK = 0x03;
-$FT_PARITY_SPACE = 0x04;
+use constant FT_PARITY_NONE => 0x00;
+use constant FT_PARITY_ODD => 0x01;
+use constant FT_PARITY_EVEN => 0x02;
+use constant FT_PARITY_MARK => 0x03;
+use constant FT_PARITY_SPACE => 0x04;
 
 # Flow Control
-$FT_FLOW_NONE = 0x0000;
-$FT_FLOW_RTS_CTS = 0x0100;
-$FT_FLOW_DTR_DSR = 0x0200;
-$FT_FLOW_XON_XOFF = 0x0400;
-$PFT_FLOW_XonChar = 0x11;   # CTRL-Q (ANSI standard)
-$PFT_FLOW_XoffChar = 0x13;  # CTRL-S (ANSI standard)
+use constant FT_FLOW_NONE => 0x0000;
+use constant FT_FLOW_RTS_CTS => 0x0100;
+use constant FT_FLOW_DTR_DSR => 0x0200;
+use constant FT_FLOW_XON_XOFF => 0x0400;
+use constant PFT_FLOW_XonChar => 0x11;   # CTRL-Q (ANSI standard)
+use constant PFT_FLOW_XoffChar => 0x13;  # CTRL-S (ANSI standard)
 
 # Purge rx and tx buffers
-$FT_PURGE_RX = 1;
-$FT_PURGE_TX = 2;
+use constant FT_PURGE_RX => 1;
+use constant FT_PURGE_TX => 2;
 
 # GetModemStatus() flags
-$PFT_MODEM_STATUS_CTS = 0x00000010;
-$PFT_MODEM_STATUS_DSR = 0x00000020;
-$PFT_MODEM_STATUS_RI = 0x00000040;
-$PFT_MODEM_STATUS_DCD = 0x00000080;
+use constant PFT_MODEM_STATUS_CTS => 0x00000010;
+use constant PFT_MODEM_STATUS_DSR => 0x00000020;
+use constant PFT_MODEM_STATUS_RI => 0x00000040;
+use constant PFT_MODEM_STATUS_DCD => 0x00000080;
+
+# Get/Set BitMode masks
+use constant PFT_BITMODE_RESET => 0x00;
+use constant PFT_BITMODE_ASYNCBB => 0x01;
+use constant PFT_BITMODE_MPSSE  => 0x02;
+use constant PFT_BITMODE_SYNCBB => 0x04;
+use constant PFT_BITMODE_MHBEM => 0x08;
+use constant PFT_BITMODE_FOISM => 0x10;
+use constant PFT_BITMODE_CBUSBB => 0x20;
 
 # Events (NOT IMPLEMENTED IN PERL CODE YET)
 #typedef VOID (*PFT_EVENT_HANDLER)(DWORD,DWORD);
@@ -316,82 +245,43 @@ $PFT_MODEM_STATUS_DCD = 0x00000080;
 #my $FT_EVENT_MODEM_STATUS = 2;
 
 # Timeouts
-$FT_DEFAULT_RX_TIMEOUT = 300;
-$FT_DEFAULT_TX_TIMEOUT = 300;
+use constant FT_DEFAULT_RX_TIMEOUT => 300;
+use constant FT_DEFAULT_TX_TIMEOUT => 300;
 
 # Enumerated Device types
-$FT_DEVICE_BM = 0;
-$FT_DEVICE_AM = 1;
-$FT_DEVICE_100AX = 2;
-$FT_DEVICE_UNKNOWN = 3;
-$FT_DEVICE_2232C = 4;
-$FT_DEVICE_232R = 5;
+use constant FT_DEVICE_BM => 0;
+use constant FT_DEVICE_AM => 1;
+use constant FT_DEVICE_100AX => 2;
+use constant FT_DEVICE_UNKNOWN => 3;
+use constant FT_DEVICE_2232C => 4;
+use constant FT_DEVICE_232R => 5;
 
-# FT Device Translation
+# FT Device Translation - accessed only via GetDeviceInfo()
 our %FT_DEVICE_TYPE = (
-  $FT_DEVICE_BM => 'FT_DEVICE_BM',
-  $FT_DEVICE_AM => 'FT_DEVICE_AM',
-  $FT_DEVICE_100AX => 'FT_DEVICE_100AX',
-  $FT_DEVICE_UNKNOWN => 'FT_DEVICE_UNKNOWN',
-  $FT_DEVICE_2232C => 'FT_DEVICE_2232C',
-  $FT_DEVICE_232R => 'FT_DEVICE_232R',
+  @{[FT_DEVICE_BM]} => 'FT_DEVICE_BM',
+  @{[FT_DEVICE_AM]} => 'FT_DEVICE_AM',
+  @{[FT_DEVICE_100AX]} => 'FT_DEVICE_100AX',
+  @{[FT_DEVICE_UNKNOWN]} => 'FT_DEVICE_UNKNOWN',
+  @{[FT_DEVICE_2232C]} => 'FT_DEVICE_2232C',
+  @{[FT_DEVICE_232R]} => 'FT_DEVICE_232R',
   );
 
 # Misc limits
-$PFT_MAX_SERIAL = 32;     # max serial number string buffer
-$PFT_MAX_DESCR = 64;      # max description string buffer
-$PFT_MAX_HANDLES = 50;    # max allocated PFT_HANDLES
-$PFT_WAIT_POLLTM = 0.25;  # default 250ms wait method poll cycle time
+use constant PFT_MAX_SERIAL => 32;     # max serial number string buffer
+use constant PFT_MAX_DESCR => 64;      # max description string buffer
+use constant PFT_MAX_HANDLES => 50;    # max allocated PFT_HANDLES
+use constant PFT_WAIT_POLLTM => 0.25;  # default 250ms wait method poll cycle time
 
 ################################################################################
-# DLL functions to import (Win32::API prototype syntax)
+# DLL functions to import (Win32::API parameter/pack syntax) 
 # Note: As of this writing, the Win32::API prototype interface from v0.55
 # seemed to have issues handling these correctly, and would abort often. 
 # However, reverting to the legacy positional/pack parameter interface 
-# works fine. These are left here for reference.
+# works fine. 
 ################################################################################
-#my %PFT_Imports = (
-# 'PFT_Version' => 'PFT_STATUS PFT_Version( LPSTR version )',
-# 'PFT_New' => 'PFT_STATUS PFT_New( PPFT_HANDLE newHandle )',
-# 'PFT_Free' => 'PFT_STATUS PFT_Free( PFT_HANDLE pftHandle )',
-# 'PFT_ValidateHandle' => 'BOOL PFT_ValidHandle( PFT_HANDLE pftHandle )',
-# 'PFT_Status' => 'PFT_STATUS PFT_Status( PFT_HANDLE pftHandle )',
-# 'PFT_GetSerialByIndex' => 'PFT_STATUS PFT_GetSerialByIndex( PFT_HANDLE pftHandle, DWORD devIndex, LPSTR pszBuff )',
-# 'PFT_GetDescrByIndex' => 'PFT_STATUS PFT_GetDescrByIndex( PFT_HANDLE pftHandle, DWORD devIndex, LPSTR pszBuff )',
-# 'PFT_OpenByIndex' => 'PFT_STATUS PFT_OpenByIndex( PFT_HANDLE pftHandle, DWORD devIndex )',
-# 'PFT_OpenBySerial' => 'PFT_STATUS PFT_OpenBySerial( PFT_HANDLE pftHandle, LPSTR pszSerial )',
-# 'PFT_Rescan' => 'PFT_STATUS PFT_Rescan( PFT_HANDLE pftHandle )',
-# 'PFT_Reload' => 'PFT_STATUS PFT_Reload( PFT_HANDLE pftHandle, UINT VID, UINT PID )',
-# 'PFT_ResetPort' => 'PFT_STATUS PFT_ResetPort( PFT_HANDLE pftHandle )',
-# 'PFT_CyclePort' => 'PFT_STATUS PFT_CyclePort( PFT_HANDLE pftHandle )',
-# 'PFT_GetDriverVersion' => 'PFT_STATUS PFT_GetDriverVersion( PFT_HANDLE pftHandle, LPDWORD driverVersion )',
-# 'PFT_GetLibraryVersion' => 'PFT_STATUS PFT_GetLibraryVersion( PFT_HANDLE pftHandle, LPDWORD libraryVersion )',
-# 'PFT_GetNumDevices' => 'PFT_STATUS PFT_GetNumDevices( PFT_HANDLE pftHandle, LPDWORD numDevices )',
-# 'PFT_GetDeviceInfo' => 'PFT_STATUS PFT_GetDeviceInfo( PFT_HANDLE pftHandle, LPDWORD ftType, LPDWORD devID, LPSTR pszSerialNumber, LPSTR pszDescription )',
-# 'PFT_Close' => 'PFT_STATUS PFT_Close( PFT_HANDLE pftHandle )',
-# 'PFT_SetBaudRate' => 'PFT_STATUS PFT_SetBaudRate( PFT_HANDLE pftHandle, DWORD baud )',
-# 'PFT_SetDivisor' => 'PFT_STATUS PFT_SetDivisor( PFT_HANDLE pftHandle, UINT divisor )',
-# 'PFT_SetDataCharacteristics' => 'PFT_STATUS PFT_SetDataCharacteristics( PFT_HANDLE pftHandle, UCHAR wordLen, UCHAR stopBits, UCHAR parity )',
-# 'PFT_SetTimeouts' => 'PFT_STATUS PFT_SetTimeouts( PFT_HANDLE pftHandle, DWORD readTimeout, DWORD writeTimeout )',
-# 'PFT_SetFlowControl' => 'PFT_STATUS PFT_SetFlowControl( PFT_HANDLE pftHandle, UINT flowCtrl, UCHAR xOnChar, UCHAR xOffChar )',
-# 'PFT_SetDtr' => 'PFT_STATUS PFT_SetDtr( PFT_HANDLE pftHandle )',
-# 'PFT_ClrDtr' => 'PFT_STATUS PFT_ClrDtr( PFT_HANDLE pftHandle )',
-# 'PFT_SetRts' => 'PFT_STATUS PFT_SetRts( PFT_HANDLE pftHandle )',
-# 'PFT_ClrRts' => 'PFT_STATUS PFT_ClrRts( PFT_HANDLE pftHandle )',
-# 'PFT_SetBreakOn' => 'PFT_STATUS PFT_SetBreakOn( PFT_HANDLE pftHandle ),',
-# 'PFT_SetBreakOff' => 'PFT_STATUS PFT_SetBreakOff( PFT_HANDLE pftHandle )',
-# 'PFT_GetStatus' => 'PFT_STATUS PFT_GetStatus( PFT_HANDLE pftHandle, LPDWORD amountInRXQueue, LPDWORD amountInTXQueue, LPDWORD eventStatus )',
-# 'PFT_GetQueueStatus' => 'PFT_STATUS PFT_GetQueueStatus( PFT_HANDLE pftHandle, LPDWORD amountInRXQueue )',
-# 'PFT_GetModemStatus' => 'PFT_STATUS PFT_GetModemStatus( PFT_HANDLE pftHandle, LPDWORD modemStatus )',
-# 'PFT_Purge' => 'PFT_STATUS PFT_Purge( PFT_HANDLE pftHandle, DWORD mask )',
-# 'PFT_ResetDevice' => 'PFT_STATUS PFT_ResetDevice( PFT_HANDLE pftHandle )',
-# 'PFT_Read' => 'PFT_STATUS PFT_Read( PFT_HANDLE pftHandle, PVOID buffer, DWORD bytesToRead, LPDWORD bytesReturned )',
-# 'PFT_Write' => 'PFT_STATUS PFT_Write( PFT_HANDLE pftHandle, PVOID buffer, DWORD bytesToWrite, LPDWORD bytesWritten )',
-#);
-
-# DLL functions to import (Win32::API parameter/pack syntax) 
-# Note: all functions return L/DWORD type 
 my $P5FTD2XX_DLL = "p5ftd2xx";
+
+# Note: all functions return L/DWORD type 
 my %PFT_Imports = (
   'PFT_Version' => 'P',
   'PFT_New' => 'P',
@@ -413,8 +303,8 @@ my %PFT_Imports = (
   'PFT_Close' => 'L',
   'PFT_SetBaudRate' => 'LL',
   'PFT_SetDivisor' => 'LI',
-  'PFT_SetDataCharacteristics' => 'LCCC',
-  'PFT_SetFlowControl' => 'LICC',
+  'PFT_SetDataCharacteristics' => 'LIII',
+  'PFT_SetFlowControl' => 'LIII',
   'PFT_SetTimeouts' => 'LLL',
   'PFT_SetDtr' => 'L',
   'PFT_ClrDtr' => 'L',
@@ -425,10 +315,20 @@ my %PFT_Imports = (
   'PFT_GetStatus' => 'LPPP',
   'PFT_GetQueueStatus' => 'LP',
   'PFT_GetModemStatus' => 'LP',
+  'PFT_SetChars' => 'LIIII',
+  'PFT_SetResetPipeRetryCount' => 'LL',
+  'PFT_SetDeadmanTimeout' => 'LL',
+  'PFT_StopInTask' => 'L',
+  'PFT_RestartInTask' => 'L',
   'PFT_Purge' => 'LL',
   'PFT_ResetDevice' => 'L',
   'PFT_Read' => 'LPLP',
   'PFT_Write' => 'LPLP',
+  'PFT_GetLatencyTimer' => 'LP',
+  'PFT_SetLatencyTimer' => 'LI',
+  'PFT_GetBitMode' => 'LP',
+  'PFT_SetBitMode' => 'LII',
+  'PFT_SetUSBParameters' => 'LLL',
   );
 #
 # End of FTD2XX/P5FTD2XX defs
@@ -445,7 +345,7 @@ sub new
   @_,
   # private object data
   _PFT_HANDLE => 0,        # handle of opened FTDI device
-  _PFT_STATUS => $FT_OK,   # status of last PFT call
+  _PFT_STATUS => FT_OK,   # status of last PFT call
   _PFT_ERROR => "",        # error message string
   # _{function}            # imported function references
   };
@@ -551,7 +451,7 @@ sub _importDll
   # check to make sure we have an import definition for the requested function
   unless( exists( $PFT_Imports{$function} ) )
     {
-    $self->{_PFT_STATUS} = $PFTE_INVALID_API;
+    $self->{_PFT_STATUS} = PFTE_INVALID_API;
     $self->{_PFT_ERROR} = "No '$function' API in DLL import list";
     return( 0 );   
     }
@@ -559,7 +459,7 @@ sub _importDll
   # check to make sure we haven't imported this before
   if( $self->{"_$function"} )
     {
-    $self->{_PFT_STATUS} = $PFTE_INVALID_API;
+    $self->{_PFT_STATUS} = PFTE_INVALID_API;
     $self->{_PFT_ERROR} = "API previously imported";
     return( 0 ); # fail
     }
@@ -569,7 +469,7 @@ sub _importDll
   my $f = Win32::API->new( $P5FTD2XX_DLL, $function, $PFT_Imports{$function}, 'L', '_cdecl' );
   unless( $f )
     {
-    $self->{_PFT_STATUS} = $PFTE_INVALID_API;
+    $self->{_PFT_STATUS} = PFTE_INVALID_API;
     $self->{_PFT_ERROR} = "$!";
     return( 0 ); # fail
     }
@@ -593,12 +493,12 @@ Win32::FTDI::FTD2XX - PERL5 interface to FTDI's D2XX Direct USB Drivers
 =head1 SYNOPSIS
 
   use Win32::FTDI::FTD2XX qw(:DEFAULT
-        $FT_BAUD_38400 $FT_BITS_8 $FT_STOP_BITS_1 $FT_PARITY_NONE
-        $FT_FLOW_RTS_CTS $PFT_MODEM_STATUS_CTS
+        FT_BAUD_38400 FT_BITS_8 FT_STOP_BITS_1 FT_PARITY_NONE
+        FT_FLOW_RTS_CTS PFT_MODEM_STATUS_CTS
         );
 
   my $FTD = Win32::FTDI::FTD2XX->new();
-  unless( $FTD->PFT_STATUS() == $FT_OK )
+  unless( $FTD->PFT_STATUS() == FT_OK )
     {
     printf( STDERR "FTD2XX::new() failed: %s (%s)\n", 
             $FTD->PFT_STATUS_MSG(), $FTD->PFT_ERROR() );
@@ -607,13 +507,14 @@ Win32::FTDI::FTD2XX - PERL5 interface to FTDI's D2XX Direct USB Drivers
   printf( "FTD2XX::new() allocated PFT_HANDLE: %d\n", $FTD->PFT_HANDLE() );
 
   my $numDevices = $FTD->GetNumDevices();
-  unless( $FTD->PFT_STATUS() == $FT_OK )
+  unless( $FTD->PFT_STATUS() == FT_OK )
     {
     printf( STDERR "FTD2XX::GetNumDevices() failed: %s (%s)\n",  
             $FTD->PFT_STATUS_MSG(), $FTD->PFT_ERROR() );
     exit( 1 );
     } 
   printf( "Found $numDevices FTDI devices connected!\n" );
+
 
 =head1 DESCRIPTION
 
@@ -654,7 +555,7 @@ and 'PFT_OpenByIndex' (Note: The object interface methods do not require the
 'PFT_' prefix, except where noted). Other convenience methods have been added,
 like 'C<waitForModem( bitmask )>' and the 'crack...' methods which extract
 bit fields from FT status bytes for you if you don't care to use the values
-directly.
+directly. 
 
 Note: For performance gains at load time, each object method is autosplit/
 autoloaded on demand, at which time each API Method also imports the actual 
@@ -666,7 +567,7 @@ Serial Bridge device, with an Atmel ATmegaX8 AVR microcontroller backend.
 
 =head1 EXPORTS
 
-The C<$FT_OK> status variable is the only default export, as it is the basis 
+The C<FT_OK> status constant is the only default export, as it is the basis 
 for testing even the object's C<new()> call. The other symbol exports may be 
 chosen as desired on the 'C<use Win32::FTDI::FTD2XX>' line as shown in the 
 synopsis.  See the FTD2XX.H header file and the FTD2XX Programmer's Guide for
@@ -674,79 +575,86 @@ more information on their values. The PFT specific symbols are explained in the
 METHODS section.
 
 The full list of available exports is:
-C<$FT_OK
-  $FT_INVALID_HANDLE
-  $FT_DEVICE_NOT_FOUND
-  $FT_DEVICE_NOT_OPENED
-  $FT_IO_ERROR
-  $FT_INSUFFICIENT_RESOURCES
-  $FT_INVALID_PARAMETER
-  $FT_INVALID_BAUD_RATE
-  $FT_DEVICE_NOT_OPENED_FOR_ERASE
-  $FT_DEVICE_NOT_OPENED_FOR_WRITE
-  $FT_FAILED_TO_WRITE_DEVICE
-  $FT_EEPROM_READ_FAILED
-  $FT_EEPROM_WRITE_FAILED
-  $FT_EEPROM_ERASE_FAILED
-  $FT_EEPROM_NOT_PRESENT
-  $FT_EEPROM_NOT_PROGRAMMED
-  $FT_INVALID_ARGS
-  $FT_NOT_SUPPORTED
-  $FT_OTHER_ERROR
-  $FT_DEVICE_LIST_NOT_READY
-  $PFTE_INVALID_API
-  $PFTE_MAX_HANDLES
-  $PFTE_INVALID_HANDLE
-  $PFTE_WAIT_TIMEOUT
-  $FT_BAUD_300
-  $FT_BAUD_600
-  $FT_BAUD_1200
-  $FT_BAUD_2400
-  $FT_BAUD_4800
-  $FT_BAUD_9600
-  $FT_BAUD_14400
-  $FT_BAUD_19200
-  $FT_BAUD_38400
-  $FT_BAUD_57600
-  $FT_BAUD_115200
-  $FT_BAUD_230400
-  $FT_BAUD_460800
-  $FT_BAUD_921600
-  $FT_BITS_8
-  $FT_BITS_7
-  $FT_BITS_6
-  $FT_BITS_5
-  $FT_STOP_BITS_1
-  $FT_STOP_BITS_1_5
-  $FT_STOP_BITS_2
-  $FT_PARITY_NONE
-  $FT_PARITY_ODD
-  $FT_PARITY_EVEN
-  $FT_PARITY_MARK
-  $FT_PARITY_SPACE
-  $FT_FLOW_NONE
-  $FT_FLOW_RTS_CTS
-  $FT_FLOW_DTR_DSR
-  $FT_FLOW_XON_XOFF
-  $FT_PURGE_RX
-  $FT_PURGE_TX
-  $FT_DEFAULT_RX_TIMEOUT
-  $FT_DEFAULT_TX_TIMEOUT
-  $FT_DEVICE_BM
-  $FT_DEVICE_AM
-  $FT_DEVICE_100AX
-  $FT_DEVICE_UNKNOWN
-  $FT_DEVICE_2232C
-  $FT_DEVICE_232R
-  $PFT_FLOW_XonChar
-  $PFT_FLOW_XoffChar
-  $PFT_MODEM_STATUS_CTS
-  $PFT_MODEM_STATUS_DSR
-  $PFT_MODEM_STATUS_RI
-  $PFT_MODEM_STATUS_DCD
-  $PFT_MAX_SERIAL
-  $PFT_MAX_DESCR
-  $PFT_MAX_HANDLES
+C<FT_OK
+  FT_INVALID_HANDLE
+  FT_DEVICE_NOT_FOUND
+  FT_DEVICE_NOT_OPENED
+  FT_IO_ERROR
+  FT_INSUFFICIENT_RESOURCES
+  FT_INVALID_PARAMETER
+  FT_INVALID_BAUD_RATE
+  FT_DEVICE_NOT_OPENED_FOR_ERASE
+  FT_DEVICE_NOT_OPENED_FOR_WRITE
+  FT_FAILED_TO_WRITE_DEVICE
+  FT_EEPROM_READ_FAILED
+  FT_EEPROM_WRITE_FAILED
+  FT_EEPROM_ERASE_FAILED
+  FT_EEPROM_NOT_PRESENT
+  FT_EEPROM_NOT_PROGRAMMED
+  FT_INVALID_ARGS
+  FT_NOT_SUPPORTED
+  FT_OTHER_ERROR
+  FT_DEVICE_LIST_NOT_READY
+  PFTE_INVALID_API
+  PFTE_MAX_HANDLES
+  PFTE_INVALID_HANDLE
+  PFTE_WAIT_TIMEOUT
+  FT_BAUD_300
+  FT_BAUD_600
+  FT_BAUD_1200
+  FT_BAUD_2400
+  FT_BAUD_4800
+  FT_BAUD_9600
+  FT_BAUD_14400
+  FT_BAUD_19200
+  FT_BAUD_38400
+  FT_BAUD_57600
+  FT_BAUD_115200
+  FT_BAUD_230400
+  FT_BAUD_460800
+  FT_BAUD_921600
+  FT_BITS_8
+  FT_BITS_7
+  FT_BITS_6
+  FT_BITS_5
+  FT_STOP_BITS_1
+  FT_STOP_BITS_1_5
+  FT_STOP_BITS_2
+  FT_PARITY_NONE
+  FT_PARITY_ODD
+  FT_PARITY_EVEN
+  FT_PARITY_MARK
+  FT_PARITY_SPACE
+  FT_FLOW_NONE
+  FT_FLOW_RTS_CTS
+  FT_FLOW_DTR_DSR
+  FT_FLOW_XON_XOFF
+  FT_PURGE_RX
+  FT_PURGE_TX
+  FT_DEFAULT_RX_TIMEOUT
+  FT_DEFAULT_TX_TIMEOUT
+  FT_DEVICE_BM
+  FT_DEVICE_AM
+  FT_DEVICE_100AX
+  FT_DEVICE_UNKNOWN
+  FT_DEVICE_2232C
+  FT_DEVICE_232R
+  PFT_FLOW_XonChar
+  PFT_FLOW_XoffChar
+  PFT_MODEM_STATUS_CTS
+  PFT_MODEM_STATUS_DSR
+  PFT_MODEM_STATUS_RI
+  PFT_MODEM_STATUS_DCD
+  PFT_BITMODE_RESET
+  PFT_BITMODE_ASYNCBB
+  PFT_BITMODE_MPSSE
+  PFT_BITMODE_SYNCBB
+  PFT_BITMODE_MHBEM
+  PFT_BITMODE_FOISM
+  PFT_BITMODE_CBUSBB
+  PFT_MAX_SERIAL
+  PFT_MAX_DESCR
+  PFT_MAX_HANDLES
 >
 
 =head1 SEE ALSO
@@ -789,7 +697,7 @@ those methods.
   PFT_Free() API's as a bare minimum, allocating a PFT_HANDLE type, which is this object
   instance's identifier to the P5FTD2XX library for its lifespan. PFT_HANDLE is synonymous
   with FT_HANDLE, and provides one per object instance. You may allocate a maximum of 
-  $PFT_MAX_HANDLES objects. 
+  PFT_MAX_HANDLES objects. 
 
   The object includes an auto DESTROY method that will close any open FTDI device handle
   and deallocate the PFT_HANDLE in the P5FTD2XX interface, when it gets garbage collected
@@ -1049,7 +957,7 @@ those methods.
   Return Failure: FALSE
   Purpose: API Method - See FT_SetFlowControl(). 
   Note: The ANSI standard Xon/Xoff characters have been defined in 
-  $PFT_FLOW_XonChar (0x11), and $PFT_FLOW_XoffChar (0x13).
+  PFT_FLOW_XonChar (0x11), and PFT_FLOW_XoffChar (0x13).
 
 =back
 
@@ -1241,13 +1149,13 @@ those methods.
 
   Parameters: {$modemStatusBitmask} [, $timeout] [, $pollTm]
   Return Success: TRUE
-  Return Failure: FALSE (Check PFT_STATUS - FT API failure or $PFTE_WAIT_TIMEOUT set)
+  Return Failure: FALSE (Check PFT_STATUS - FT API failure or PFTE_WAIT_TIMEOUT set)
   Purpose: Extension Method - since the event API's are unimplemented, this method may be used
   to suspend program execution until one or more of the modem status bits is set (see
   GetModemStatus). 
 
-  The modemStatusBitmask is formed using the $PFT_MODEM_STATUS_xxx bit definitions. i.e.:
-    $FTD->waitForModem( $PFT_MODEM_STATUS_CTS, 3 );
+  The modemStatusBitmask is formed using the PFT_MODEM_STATUS_xxx bit definitions. i.e.:
+    $FTD->waitForModem( PFT_MODEM_STATUS_CTS, 3 );
   would wait max 3 seconds for the device's CTS signal to assert itself.
 
   The optional $timeout provides a limiting timeframe to wait, in seconds. Fractional seconds,
@@ -1260,6 +1168,52 @@ those methods.
   critical timing sequences, but is accurate enough for most uses. When setting $timeout and/or
   $pollTm, $timeout should be an even multiple of $pollTm, or if not, the overlap in timing should
   be accounted for if neccessary. 
+
+=back
+
+=item C<SetChars>
+
+=over 2
+
+  Parameters: {$eventCh, $eventChEn, $errorCh, $errorChEn}
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_SetChars().
+  Note: The $eventCh and $errorCh parameters should be specified in numeric form, 
+  i.e.:  SetChars( 0x12, 1, 0x14, 1 );
+
+=back
+
+=item C<SetResetPipeRetryCount>
+
+=over 2
+
+  Parameters: {$count}
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_SetResetPipeRetryCount().
+
+=back
+
+=item C<StopInTask>
+
+=over 2
+
+  Parameters: None
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_StopInTask().
+
+=back
+
+=item C<RestartInTask>
+
+=over 2
+
+  Parameters: None
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_RestartInTask().
 
 =back
 
@@ -1300,6 +1254,69 @@ those methods.
   If $bytesToWrite is not specified, the method will use the return of 'length($writeBuffer)'.
   If $bytesToWrite is specified, it allows sending a full or partial buffer; however, the result
   of sending more bytes than are in the buffer is undefined.
+
+=back
+
+=item C<GetLatencyTimer>
+
+=over 2
+
+  Parameters: None
+  Return Success: $timer
+  Return Failure: undef
+  Purpose: API Method - See FT_GetLatencyTimer().
+
+=back
+
+=item C<SetLatencyTimer>
+
+=over 2
+
+  Parameters: {$timer}
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_SetLatencyTimer().
+
+=back
+
+=item C<GetBitMode>
+
+=over 2
+
+  Parameters: None
+  Return Success: $mode
+  Return Failure: undef
+  Purpose: API Method - See FT_GetBitMode().
+
+=back
+
+=item C<SetBitMode>
+
+=over 2
+
+  Parameters: {$mode}
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_SetBitMode().
+  Note: The following EXPORTS for BitModes are available for convenience:
+    PFT_BITMODE_RESET
+    PFT_BITMODE_ASYNCBB
+    PFT_BITMODE_MPSSE
+    PFT_BITMODE_SYNCBB
+    PFT_BITMODE_MHBEM
+    PFT_BITMODE_FOISM
+    PFT_BITMODE_CBUSBB
+
+=back
+
+=item C<SetUSBParameters>
+
+=over 2
+
+  Parameters: {$inTransferSize, $outTransferSize}
+  Return Success: TRUE
+  Return Failure: FALSE
+  Purpose: API Method - See FT_SetUSBParameters().
 
 =back
 
@@ -1348,11 +1365,11 @@ those methods.
   Purpose: Accesor Method - returns the enumerated status/error values of the last
   method call (see FT and PFTE extensions in EXPORTS). In addition to the FT status
   types, the PFT specific error types are: 
-  $PFTE_INVALID_API - Requested API not in P5FTD2XX.DLL - usually a bug on my part, or the
+  PFTE_INVALID_API - Requested API not in P5FTD2XX.DLL - usually a bug on my part, or the
     P5FTD2XX.DLL can't be found in the system PATH (default: "%SystemRoot%\System32")
-  $PFTE_INVALID_HANDLE - The PFT_HANDLE passed is not valid (also usually a bug on my part)
-  $PFTE_MAX_HANDLES - You've allocated max objects/PFT_HANDLES from the P5FTD2XX interface
-  $PFTE_WAIT_TIMEOUT - error type for 'waitForModem' method on timeout only
+  PFTE_INVALID_HANDLE - The PFT_HANDLE passed is not valid (also usually a bug on my part)
+  PFTE_MAX_HANDLES - You've allocated max objects/PFT_HANDLES from the P5FTD2XX interface
+  PFTE_WAIT_TIMEOUT - error type for 'waitForModem' method on timeout only
 
 =back
 
@@ -1360,11 +1377,12 @@ those methods.
 
 =over 2
 
-  Parameters: $PFT_STATUS
+  Parameters: [$PFT_STATUS]
   Return Success: $PFT_STATUS_MSG
   Return Failure: undef
   Purpose: Accesor Method - translates the enumerated FT_STATUS/PFT_STATUS values into
-  text equivalent for ease of generating error output.
+  text equivalent for ease of generating error output. If a specific $PFT_STATUS is not 
+  provided, the method assumes the current state.
 
 =back
 
@@ -1415,9 +1433,9 @@ B<Things to Do>
 1) The FT_EVENT features have not been ported, and may or may not be, depending
 on demand (see the 'waitForModem' method instead for now).
 
-2) Complete the EEPROM API interface.
+2) Complete the DeviceInfoList/Detail Classic APIs.
 
-3) Possibly complete the Extended API Function interfaces.
+3) Complete the EEPROM API interface.
 
 4) Win the lottery, buy an island and retire ...
 
@@ -1442,7 +1460,7 @@ at your option, any later version of Perl 5 you may have available.
 =cut
 
 ################################################################################
-# Object Methods
+# Autosplit/Autoloaded Object Methods
 #
 sub P5VERSION
   {
@@ -1655,8 +1673,9 @@ sub GetSerialByIndex
     return( undef ) unless( _importDll( $self, "PFT_GetSerialByIndex" ) );
     }
 
-  my $devSerial = "\0" x $PFT_MAX_SERIAL;
-  $self->{_PFT_STATUS} = $self->{_PFT_GetSerialByIndex}->Call( $self->{_PFT_HANDLE}, $devIndex, $devSerial );
+  my $devSerial = "\0" x PFT_MAX_SERIAL;
+  $self->{_PFT_STATUS} = $self->{_PFT_GetSerialByIndex}->Call( $self->{_PFT_HANDLE}, 
+                                  $devIndex, $devSerial );
   return( undef ) if( $self->{_PFT_STATUS} );
 
   $devSerial =~ s/\0//g;  # clean nulls out of the string
@@ -1676,8 +1695,9 @@ sub GetDescrByIndex
     return( undef ) unless( _importDll( $self, "PFT_GetDescrByIndex" ) );
     }
 
-  my $devDescr = "\0" x $PFT_MAX_DESCR;
-  $self->{_PFT_STATUS} = $self->{_PFT_GetDescrByIndex}->Call( $self->{_PFT_HANDLE}, $devIndex, $devDescr );
+  my $devDescr = "\0" x PFT_MAX_DESCR;
+  $self->{_PFT_STATUS} = $self->{_PFT_GetDescrByIndex}->Call( $self->{_PFT_HANDLE}, 
+                                  $devIndex, $devDescr );
   return( undef ) if( $self->{_PFT_STATUS} );
 
   $devDescr =~ s/\0//g;  # clean nulls out of the string
@@ -1698,8 +1718,8 @@ sub GetDeviceInfo
 
   my $devType = pack( 'L', 0 );
   my $devID = pack( 'L', 0 );
-  my $devSerial = "\0" x $PFT_MAX_SERIAL;
-  my $devDescr = "\0" x $PFT_MAX_DESCR;
+  my $devSerial = "\0" x PFT_MAX_SERIAL;
+  my $devDescr = "\0" x PFT_MAX_DESCR;
 
   $self->{_PFT_STATUS} = $self->{_PFT_GetDeviceInfo}->Call( $self->{_PFT_HANDLE}, 
                                  $devType, $devID, $devSerial, $devDescr );
@@ -1733,7 +1753,8 @@ sub OpenBySerial
     return( 0 ) unless( _importDll( $self, "PFT_OpenBySerial" ) );
     }
 
-  $self->{_PFT_STATUS} = $self->{_PFT_OpenBySerial}->Call( $self->{_PFT_HANDLE}, $devSerial );
+  $self->{_PFT_STATUS} = $self->{_PFT_OpenBySerial}->Call( $self->{_PFT_HANDLE},
+                                   $devSerial );
 
   return( 0 ) if( $self->{_PFT_STATUS} );
   return( 1 );
@@ -1752,7 +1773,8 @@ sub OpenByIndex
     return( 0 ) unless( _importDll( $self, "PFT_OpenByIndex" ) );
     }
 
-  $self->{_PFT_STATUS} = $self->{_PFT_OpenByIndex}->Call( $self->{_PFT_HANDLE}, $devIndex );
+  $self->{_PFT_STATUS} = $self->{_PFT_OpenByIndex}->Call( $self->{_PFT_HANDLE}, 
+                                   $devIndex );
 
   return( 0 ) if( $self->{_PFT_STATUS} );
   return( 1 );
@@ -2165,10 +2187,10 @@ sub crackModemStatus
   $modemStatus = GetModemStatus( $self ) unless( $modemStatus );
   return( undef ) if( $self->{_PFT_STATUS} );
 
-  return( ($modemStatus & $PFT_MODEM_STATUS_CTS) ? 1 : 0,
-          ($modemStatus & $PFT_MODEM_STATUS_DSR) ? 1 : 0,
-          ($modemStatus & $PFT_MODEM_STATUS_RI)  ? 1 : 0,
-          ($modemStatus & $PFT_MODEM_STATUS_DCD) ? 1 : 0
+  return( ($modemStatus & PFT_MODEM_STATUS_CTS) ? 1 : 0,
+          ($modemStatus & PFT_MODEM_STATUS_DSR) ? 1 : 0,
+          ($modemStatus & PFT_MODEM_STATUS_RI)  ? 1 : 0,
+          ($modemStatus & PFT_MODEM_STATUS_DCD) ? 1 : 0
         );
   } # GetModemStatus()
 
@@ -2184,13 +2206,12 @@ sub waitForModem
 
   while( 1 )
     {
-    $pollTm = $PFT_WAIT_POLLTM unless( $pollTm );
+    $pollTm = PFT_WAIT_POLLTM unless( $pollTm );
     my $status = GetModemStatus( $self );
     return( undef ) if( $self->{_PFT_STATUS} );
     return( 1 ) if( $status & $modemStatus );   # found status true
 
     # else, wait for required time and check again
-    printf( STDERR "select( undef, undef, undef, $pollTm )\n" );
     select( undef, undef, undef, $pollTm );     # use for sub-second sleep
     if( $timeout ) 
       {
@@ -2200,10 +2221,106 @@ sub waitForModem
       }
     }
 
-  $self->{_PFT_STATUS} = $PFTE_WAIT_TIMEOUT; 
+  $self->{_PFT_STATUS} = PFTE_WAIT_TIMEOUT; 
   return( 0 );  # timeout
 
   }  # waitForModem()
+
+########################################
+#
+sub SetChars
+  {
+  my $self = shift;
+  my $eventCh = shift;
+  my $eventChEn = shift;
+  my $errorCh = shift;
+  my $errorChEn = shift;
+   
+  unless( defined( $self->{_PFT_SetChars} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_SetChars" ) );
+    }
+
+#  $eventCh = 0x65;
+ # $errorCh = 0x66;
+  $self->{_PFT_STATUS} = $self->{_PFT_SetChars}->Call( $self->{_PFT_HANDLE},
+                                $eventCh, $eventChEn, $errorCh, $errorChEn );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # SetChars()
+
+########################################
+#
+sub SetResetPipeRetryCount
+  {
+  my $self = shift;
+  my $retryCount = shift;
+  
+  unless( defined( $self->{_PFT_SetResetPipeRetryCount} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_SetResetPipeRetryCount" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_SetResetPipeRetryCount}->Call( $self->{_PFT_HANDLE},
+                                $retryCount );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # SetResetPipeRetryCount()
+
+########################################
+#
+sub StopInTask
+  {
+  my $self = shift;
+  
+  unless( defined( $self->{_PFT_StopInTask} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_StopInTask" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_StopInTask}->Call( $self->{_PFT_HANDLE} );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # StopInTask()
+
+########################################
+#
+sub RestartInTask
+  {
+  my $self = shift;
+  
+  unless( defined( $self->{_PFT_RestartInTask} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_RestartInTask" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_RestartInTask}->Call( $self->{_PFT_HANDLE} );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # RestartInTask()
+
+########################################
+#
+sub SetDeadmanTimeout
+  {
+  my $self = shift;
+  my $timeout = shift;
+  
+  unless( defined( $self->{_PFT_SetDeadmanTimeout} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_SetDeadmanTimeout" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_SetDeadmanTimeout}->Call( $self->{_PFT_HANDLE},
+                                                                $timeout );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # SetDeadmanTimeout()
 
 ########################################
 #
@@ -2272,4 +2389,105 @@ sub Write
   return( unpack( 'L', $bytesWritten ) );
 
   } # Write()
+
+############################################################
+# Extended FTD API
+############################################################
+#
+sub GetLatencyTimer
+  {
+  my $self = shift;
+  
+  unless( defined( $self->{_PFT_GetLatencyTimer} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_GetLatencyTimer" ) );
+    }
+
+  my $timer = pack( 'I', 0 );
+  $self->{_PFT_STATUS} = $self->{_PFT_GetLatencyTimer}->Call( $self->{_PFT_HANDLE}, 
+                                $timer );
+  return( undef ) if( $self->{_PFT_STATUS} );
+  
+  return( unpack( 'I', $timer ) );
+
+  } # GetLatencyTimer()
+
+########################################
+#
+sub SetLatencyTimer
+  {
+  my $self = shift;
+  my $timer = shift;
+  
+  unless( defined( $self->{_PFT_SetLatencyTimer} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_SetLatencyTimer" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_SetLatencyTimer}->Call( $self->{_PFT_HANDLE}, 
+                                $timer );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # SetLatencyTimer()
+
+########################################
+#
+sub GetBitMode
+  {
+  my $self = shift;
+  
+  unless( defined( $self->{_PFT_GetBitMode} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_GetBitMode" ) );
+    }
+
+  my $mode = pack( 'I', 0 );
+  $self->{_PFT_STATUS} = $self->{_PFT_GetBitMode}->Call( $self->{_PFT_HANDLE}, 
+                                $mode );
+  return( undef ) if( $self->{_PFT_STATUS} );
+  
+  return( unpack( 'I', $mode ) );
+
+  } # GetBitMode()
+
+########################################
+#
+sub SetBitMode
+  {
+  my $self = shift;
+  my $mask = shift;
+  my $mode = shift;
+  
+  unless( defined( $self->{_PFT_SetBitMode} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_SetBitMode" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_SetBitMode}->Call( $self->{_PFT_HANDLE}, 
+                                $mask, $mode );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # SetBitMode()
+
+########################################
+#
+sub SetUSBParameters
+  {
+  my $self = shift;
+  my $inTransferSize = shift;
+  my $outTransferSize = shift;
+  
+  unless( defined( $self->{_PFT_SetUSBParameters} ) )
+    {
+    return( undef ) unless( _importDll( $self, "PFT_SetUSBParameters" ) );
+    }
+
+  $self->{_PFT_STATUS} = $self->{_PFT_SetUSBParameters}->Call( $self->{_PFT_HANDLE}, 
+                                $inTransferSize, $outTransferSize );
+  return( 0 ) if( $self->{_PFT_STATUS} );
+  return( 1 );
+
+  } # SetUSBParameters()
 
